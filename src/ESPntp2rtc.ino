@@ -49,10 +49,10 @@ void loop() {
       (uint8_t)  ntpNow.minute, \
       (uint8_t)  ntpNow.second);
 
-    // set/update RTSs on the I2C bus
-    ds1307.adjust(rtcNow);
-    ds3231.adjust(rtcNow);
-    pcf8523.adjust(rtcNow);
+    // set/update RTSs; each on a separate I2C bus, see config.h
+    Wire.begin(DS1307_BUS);  ds1307.adjust(rtcNow);
+    Wire.begin(DS3231_BUS);  ds3231.adjust(rtcNow);
+    Wire.begin(PCF8523_BUS); pcf8523.adjust(rtcNow);
 
     NTP.printDateTime(ntpNow);
     Serial.println("RTC updated");
