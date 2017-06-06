@@ -5,6 +5,10 @@
 // NTPtimeESP
 #define DEBUG_ON
 #define NTP_POOL "pool.ntp.org"
+#define TIME_UTC  0.0,0 // UTC+00:00,None
+#define TIME_GMT  0.0,1 // UTC+00:00,European summer time
+#define TIME_CET  1.0,1 // UTC+01:00,European summer time
+#define TIME_ZONE TIME_UTC
 
 #ifdef SINGLE_I2C_BUS
 // all RTCs on the same bus

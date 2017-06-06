@@ -34,9 +34,8 @@ void setup() {
 }
 
 void loop() {
-
-  // first parameter: Time zone in floating point (for India); second parameter: 1 for European summer time; 2 for US daylight saving time (contributed by viewwer, not tested by me)
-  strDateTime ntpNow = NTP.getNTPtime(1.0, 1);
+  // query NTP server, see config.h
+  strDateTime ntpNow = NTP.getNTPtime(TIME_ZONE);
 
   // check ntpNow.valid before using the returned time
   if(ntpNow.valid){
@@ -48,8 +47,8 @@ void loop() {
       (uint8_t)  ntpNow.hour,   \
       (uint8_t)  ntpNow.minute, \
       (uint8_t)  ntpNow.second);
+      // set/update RTSs; each on a separate I2C bus, see config.h
 
-    // set/update RTSs; each on a separate I2C bus, see config.h
     Wire.begin(DS1307_BUS);  ds1307.adjust(rtcNow);
     Wire.begin(DS3231_BUS);  ds3231.adjust(rtcNow);
     Wire.begin(PCF8523_BUS); pcf8523.adjust(rtcNow);
