@@ -25,7 +25,7 @@ void setup() {
   Serial.println("Connecting to Wi-Fi");
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin (WIFI_SSID, WIFI_PASS); // see config.h
+  WiFi.begin(WIFI_KEYS); // see config.h
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(500);

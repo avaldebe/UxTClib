@@ -1,6 +1,7 @@
 // Local WiFi
-#define WIFI_SSID "your_wifi_name"
-#define WIFI_PASS "your_wifi_pass"
+#ifndef WIFI_KEYS
+#define WIFI_KEYS "wifi_ssid","wifi_pass"
+#endif
 
 // NTPtimeESP
 #define DEBUG_ON
@@ -8,8 +9,11 @@
 #define TIME_UTC  0.0,0 // UTC+00:00,None
 #define TIME_GMT  0.0,1 // UTC+00:00,European summer time
 #define TIME_CET  1.0,1 // UTC+01:00,European summer time
+#ifndef TIME_ZONE
 #define TIME_ZONE TIME_UTC
+#endif
 
+// I2C bus(es)
 #ifdef SINGLE_I2C_BUS
 // all RTCs on the same bus
 #define DS1307_BUS  SDA,SCL
