@@ -22,12 +22,21 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
   Serial.println("Booted");
-  Serial.println("Connecting to Wi-Fi");
+  Serial.println((String)"Connecting to SSID:"+WIFI_SSID);
 
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_KEYS); // see config.h
+  WiFi.begin(WIFI_SSID,WIFI_PASS); // see config.h
   while (WiFi.status() != WL_CONNECTED) {
-    Serial.print(".");
+    switch (WiFi.status()) {
+      case WL_NO_SSID_AVAIL:
+        Serial.println("SSID not found");
+        break;
+      case WL_CONNECT_FAILED:
+        Serial.println("Failed to connect");
+        break;
+      case default:
+        Serial.print(".");
+    }
     delay(500);
   }
   Serial.println("WiFi connected");

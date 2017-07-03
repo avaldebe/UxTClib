@@ -1,6 +1,9 @@
 // Local WiFi
-#ifndef WIFI_KEYS
-#define WIFI_KEYS "wifi_ssid","wifi_pass"
+#ifndef WIFI_SSID
+#define WIFI_SSID "wifi_ssid"
+#endif
+#ifndef WIFI_PASS
+#define WIFI_PASS "wifi_pass"
 #endif
 
 // NTPtimeESP
