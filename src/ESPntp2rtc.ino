@@ -67,7 +67,8 @@ void loop() {
       (uint8_t)  ntpNow.hour,   \
       (uint8_t)  ntpNow.minute, \
       (uint8_t)  ntpNow.second);
-      // set/update RTSs; each on a separate I2C bus, see config.h
+
+    // set/update RTSs; each on a separate I2C bus, see config.h
     Wire.begin(DS1307_BUS);  ds1307.adjust(rtcNow);
     Wire.begin(DS3231_BUS);  ds3231.adjust(rtcNow);
     Wire.begin(PCF8523_BUS); pcf8523.adjust(rtcNow);
@@ -94,21 +95,36 @@ void oled_wifi(){
   display.display();
 }
 
-void oled_time(strDateTime ntpNow) {
+void oled_time(char const* title, \
+               uint16_t year, uint8_t month, uint8_t day, \
+               uint8_t hour, uint8_t minute, uint8_t second) {
   static char buffer[24];
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setFont(ArialMT_Plain_24);
-  display.drawString(64, 12, "NTP");
+  display.drawString(64, 12, title);
 
   // date and time
   display.setFont(ArialMT_Plain_10);
-  sprintf(buffer, "%04d-%02d-%02d", ntpNow.year, ntpNow.month, ntpNow.day);
+  sprintf(buffer, "%04d-%02d-%02d", year, month, day);
   display.drawString(64, 42, buffer);
-  sprintf(buffer, "%02d:%02d:%02d", ntpNow.hour, ntpNow.minute, ntpNow.second);
+  sprintf(buffer, "%02d:%02d:%02d", hour, minute, second);
   display.drawString(64, 54, buffer);
 
   // write the buffer to the display
   display.display();
-
 }
+
+
+
+void oled_time(strDateTime now) {
+  oled_time("NTP", now.year, now.month, now.day, \
+            now.hour, now.minute, now.second);
+}
+
+
+void oled_time(DateTime now) {
+  oled_time("RTC", now.year(), now.month(), now.day(), \
+            now.hour(), now.minute(), now.second());
+}
+
