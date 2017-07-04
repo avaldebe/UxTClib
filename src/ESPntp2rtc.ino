@@ -4,6 +4,7 @@ ESPntp2rtc.ino
 
 Based on example code from
   https://github.com/SensorsIot/NTPtimeESP
+  https://github.com/squix78/esp8266-oled-ssd1306
 */
 
 #include <Wire.h>

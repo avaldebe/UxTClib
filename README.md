@@ -15,6 +15,7 @@ Update/setup an RTC module from a [NTP][] service using with ESP8266 module.
   - arduino framework
   - [NTP library][NTPlib], see [video][NTPvid]
   - [RTC library][RTClib]
+  - [OLED library][OLEDlib]
 
 [d1_mini]: https://wiki.wemos.cc/products:d1:d1_mini
 [oled_shield]: https://wiki.wemos.cc/products:d1_mini_shields:oled_shield
@@ -28,3 +29,4 @@ Update/setup an RTC module from a [NTP][] service using with ESP8266 module.
 [RTClib]: https://github.com/adafruit/RTClib
 [NTP]: https://en.wikipedia.org/wiki/Network_Time_Protocol
 [epoch]: https://en.wikipedia.org/wiki/Unix_time
+[OLEDlib]: https://github.com/squix78/esp8266-oled-ssd1306
