@@ -19,9 +19,13 @@ RTC_PCF8523 pcf8523;
 #include "images.h"             // WiFi logo
 SSD1306  display(0x3c, D2, D1); // Initialize the OLED display using Wire library
 
-#include <NTPtimeESP.h>
+#include <ESP8266WiFi.h>
+#include <EasyNTPClient.h>
+#include <WiFiUdp.h>
 #include "config.h"
-NTPtime NTP(NTP_POOL); // see config.h
+WiFiUDP udp;
+EasyNTPClient ntp(udp, NTP_POOL, TIME_ZONE); // see config.h
+
 
 void setup() {
   Serial.begin(115200);
@@ -52,31 +56,33 @@ void setup() {
 }
 
 void loop() {
-  // query NTP server, see config.h
-  strDateTime ntpNow = NTP.getNTPtime(TIME_ZONE);
+  // query NTP server
+  uint32_t unixtime = (uint32_t) ntp.getUnixTime();
+  Serial.printf("NTC %d %s\n",unixtime,NTP_POOL);
 
-  // check ntpNow.valid before using the returned time
-  if(ntpNow.valid){
-    oled_time(ntpNow);
-
-    // convert NTP date/time strcuture to RTC date/time class
-    DateTime rtcNow (           \
-      (uint16_t) ntpNow.year,   \
-      (uint8_t)  ntpNow.month,  \
-      (uint8_t)  ntpNow.day,    \
-      (uint8_t)  ntpNow.hour,   \
-      (uint8_t)  ntpNow.minute, \
-      (uint8_t)  ntpNow.second);
+  // check ntpNow before using the returned time
+  if(unixtime>0){
+    // convert sto RTC date/time class
+    DateTime ntpNow(unixtime);
+    oled_time("NTP", ntpNow);
 
     // set/update RTSs; each on a separate I2C bus, see config.h
-    Wire.begin(DS1307_BUS);  ds1307.adjust(rtcNow);
-    Wire.begin(DS3231_BUS);  ds3231.adjust(rtcNow);
-    Wire.begin(PCF8523_BUS); pcf8523.adjust(rtcNow);
+    Wire.begin(DS1307_BUS);
+    if(ds1307.isrunning()){
+      ds1307.adjust(ntpNow);
+      ntpNow = ds1307.now();
+      oled_time("RTC", ntpNow);
+      Serial.printf("RTC %d %s\n",ntpNow.unixtime(),"DS1307");
+    }
+    /*
+    Wire.begin(DS3231_BUS);  ds3231.adjust(ntpNow);
+    Wire.begin(PCF8523_BUS); pcf8523.adjust(ntpNow);
 
     NTP.printDateTime(ntpNow);
     Serial.println("RTC updated");
+    */
   }
-  delay(10000); // 10 secs
+  delay(6000); // 60 secs
 }
 
 void oled_wifi(){
@@ -95,36 +101,20 @@ void oled_wifi(){
   display.display();
 }
 
-void oled_time(char const* title, \
-               uint16_t year, uint8_t month, uint8_t day, \
-               uint8_t hour, uint8_t minute, uint8_t second) {
+void oled_time(const char* msg, DateTime now) {
   static char buffer[24];
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setFont(ArialMT_Plain_24);
-  display.drawString(64, 12, title);
+  display.drawString(64, 12, msg);
 
   // date and time
   display.setFont(ArialMT_Plain_10);
-  sprintf(buffer, "%04d-%02d-%02d", year, month, day);
+  sprintf(buffer, "%04d-%02d-%02d", now.year(), now.month(), now.day());
   display.drawString(64, 42, buffer);
-  sprintf(buffer, "%02d:%02d:%02d", hour, minute, second);
+  sprintf(buffer, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
   display.drawString(64, 54, buffer);
 
   // write the buffer to the display
   display.display();
 }
-
-
-
-void oled_time(strDateTime now) {
-  oled_time("NTP", now.year, now.month, now.day, \
-            now.hour, now.minute, now.second);
-}
-
-
-void oled_time(DateTime now) {
-  oled_time("RTC", now.year(), now.month(), now.day(), \
-            now.hour(), now.minute(), now.second());
-}
-
