@@ -13,18 +13,17 @@ Update/setup an RTC module from a [NTP][] service using with ESP8266 module.
     - enclosure
 - Software
   - arduino framework
-  - [NTP library][NTPlib], see [video][NTPvid]
-  - [RTC library][RTClib]
-  - [OLED library][OLEDlib]
+  - [EasyNTPClient library][NTPlib]
+  - [RTClib library][RTClib]
   - manage wifi keys (optional)
     - [JSON library][ArduinoJson] + SPIFFS
     - [WiFiManager library][WiFiManager]
 
-
 ## Get libs in PlatformIO
 ```bash
-pio lib install 64 83 562 567
+pio lib install EasyNTPClient RTClib
 ```
+
 
 [d1_mini]: https://wiki.wemos.cc/products:d1:d1_mini
 [oled_shield]: https://wiki.wemos.cc/products:d1_mini_shields:oled_shield
@@ -33,13 +32,11 @@ pio lib install 64 83 562 567
 [base2]: https://wiki.wemos.cc/products:d1_mini_shields:dual_base
 [base3]: https://wiki.wemos.cc/products:d1_mini_shields:tripler_base
 
-[NTPlib]: https://github.com/SensorsIot/NTPtimeESP
-[NTPvid]: https://www.youtube.com/watch?v=qzkNXhubWLg
+[NTPlib]: https://github.com/aharshac/EasyNTPClient
 [RTClib]: https://github.com/adafruit/RTClib
-[NTP]: https://en.wikipedia.org/wiki/Network_Time_Protocol
-[epoch]: https://en.wikipedia.org/wiki/Unix_time
 [OLEDlib]: https://github.com/squix78/esp8266-oled-ssd1306
-
 [WiFiManager]: https://github.com/tzapu/WiFiManager.git
 [ArduinoJson]: https://github.com/bblanchon/ArduinoJson.git
 
+[NTP]: https://en.wikipedia.org/wiki/Network_Time_Protocol
+[epoch]: https://en.wikipedia.org/wiki/Unix_time
