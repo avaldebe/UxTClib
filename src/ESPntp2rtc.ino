@@ -8,82 +8,111 @@ Based on example code from
 */
 
 #include <Wire.h>
+#ifndef SCL
+#define SCL D1
+#endif
+#ifndef SDA
+#define SDA D2
+#endif
 
 #include <RTClib.h>
 RTC_DS1307  ds1307;
-RTC_DS3231  ds3231;
 RTC_PCF8523 pcf8523;
-////RTC_PCF8563 pcf8563;
 
 #include <SSD1306.h>            // alias for `#include "SSD1306Wire.h"`
 #include "images.h"             // WiFi logo
-SSD1306  display(0x3c, D2, D1); // Initialize the OLED display using Wire library
+SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire library
 
+#ifdef ARDUINO_ARCH_ESP32
+#include <WiFi.h>
+#else
 #include <ESP8266WiFi.h>
+#endif
 #include <EasyNTPClient.h>
 #include <WiFiUdp.h>
 #include "config.h"
 WiFiUDP udp;
 EasyNTPClient ntp(udp, NTP_POOL, TIME_ZONE); // see config.h
 
-
 void setup() {
   Serial.begin(115200);
-  Serial.println();
-  Serial.println("Booted");
+  Serial.printf("/nBooted");
 
+  Wire.begin(SDA, SCL); // not needed, SSD1306Wire->connect() calls Wire.begin(SDA, SCL)
   display.init();
   display.flipScreenVertically();
   oled_wifi();
 
-  Serial.print("Connecting to ");Serial.println(WIFI_SSID);
+  Serial.printf("Connecting to %s\n", WIFI_SSID);
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID,WIFI_PASS); // see config.h
+  WiFi.begin(WIFI_SSID, WIFI_PASS); // see config.h
   while (WiFi.status() != WL_CONNECTED) {
     switch (WiFi.status()) {
       case WL_NO_SSID_AVAIL:
-        Serial.println("SSID not found");
+        Serial.printf("SSID not found\n");
         break;
       case WL_CONNECT_FAILED:
-        Serial.println("Failed to connect");
+        Serial.printf("Failed to connect\n");
         break;
       default:
-        Serial.print(".");
+        Serial.printf(".");
     }
     delay(500);
   }
-  Serial.println("WiFi connected");
+  Serial.printf("WiFi connected\n");
 }
 
 void loop() {
   // query NTP server
   uint32_t unixtime = (uint32_t) ntp.getUnixTime();
-  Serial.printf("NTC %d %s\n",unixtime,NTP_POOL);
-
-  // check ntpNow before using the returned time
-  if(unixtime>0){
-    // convert sto RTC date/time class
-    DateTime ntpNow(unixtime);
-    oled_time("NTP", ntpNow);
-
-    // set/update RTSs; each on a separate I2C bus, see config.h
-    Wire.begin(DS1307_BUS);
-    if(ds1307.isrunning()){
-      ds1307.adjust(ntpNow);
-      ntpNow = ds1307.now();
-      oled_time("RTC", ntpNow);
-      Serial.printf("RTC %d %s\n",ntpNow.unixtime(),"DS1307");
-    }
-    /*
-    Wire.begin(DS3231_BUS);  ds3231.adjust(ntpNow);
-    Wire.begin(PCF8523_BUS); pcf8523.adjust(ntpNow);
-
-    NTP.printDateTime(ntpNow);
-    Serial.println("RTC updated");
-    */
+  if(unixtime==0){  // ntp request failed
+    Serial.printf("NTP fail\n");
+    delay(1500);    // wait 15 secs
+    return;         // before retry
   }
+
+  if (update_rtc(ds1307, unixtime)){
+    // sucesful update: DS1307/DS3231
+    oled_time("RTC", ds1307.now(), "DS1307/DS3231");
+  } else if(update_rtc(pcf8523, unixtime)){
+    // sucesful update: PCF8523/PCF8563(?)
+    oled_time("RTC", pcf8523.now(), "PCF8523/PCF8563");
+  } else {
+    // no RTC found/updated, report NTC time
+    oled_time("NTP", DateTime(unixtime), NTP_POOL);
+  }
+
   delay(6000); // 60 secs
 }
+
+bool update_rtc(RTC_DS1307 &rtc, uint32_t unixtime){
+  DateTime now = rtc.now();
+  if(now.unixtime()==unixtime){
+    Serial.printf("RTC OK\n");
+    return true;
+  }
+
+  // should take way less than 1s to update
+  //Serial.printf("RTC sync\n");
+  rtc.adjust(DateTime(unixtime));
+  now = rtc.now();
+  return now.unixtime()==unixtime;
+}
+
+bool update_rtc(RTC_PCF8523 &rtc, uint32_t unixtime){
+  DateTime now = rtc.now();
+  if(now.unixtime()==unixtime){
+    return true;
+    Serial.printf("RTC OK\n");
+  }
+
+  // should take way less than 1s to update
+  //Serial.printf("RTC sync\n");
+  rtc.adjust(DateTime(unixtime));
+  now = rtc.now();
+  return now.unixtime()==unixtime;
+}
+
 
 void oled_wifi(){
   display.clear();
@@ -101,12 +130,15 @@ void oled_wifi(){
   display.display();
 }
 
-void oled_time(const char* msg, DateTime now) {
+void oled_time(const char* title, DateTime now, const char* msg) {
+  // serial message
+  Serial.printf("%s %d %s\n",title, now.unixtime(), msg);
+
   static char buffer[24];
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setFont(ArialMT_Plain_24);
-  display.drawString(64, 12, msg);
+  display.drawString(64, 12, title);
 
   // date and time
   display.setFont(ArialMT_Plain_10);
