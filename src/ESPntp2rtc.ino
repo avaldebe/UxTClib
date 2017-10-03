@@ -9,10 +9,10 @@ Based on example code from
 
 #include <Wire.h>
 #ifndef SCL
-#define SCL D1
+ #define SCL D1
 #endif
 #ifndef SDA
-#define SDA D2
+ #define SDA D2
 #endif
 
 #include <RTClib.h>
@@ -24,9 +24,9 @@ RTC_PCF8523 pcf8523;
 SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire library
 
 #ifdef ARDUINO_ARCH_ESP32
-#include <WiFi.h>
-#else
-#include <ESP8266WiFi.h>
+ #include <WiFi.h>
+#elif defined(ESP8266)
+ #include <ESP8266WiFi.h>
 #endif
 #include <EasyNTPClient.h>
 #include <WiFiUdp.h>
@@ -34,11 +34,18 @@ SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire libr
 WiFiUDP udp;
 EasyNTPClient ntp(udp, NTP_POOL, TIME_ZONE); // see config.h
 
+#define DEBUG
+#ifdef DEBUG
+ #define debug(f,s,d) Serial.printf(f,s,d)
+#else
+ #define debug(f,s,d) //skip this line
+#endif
+
 void setup() {
   Serial.begin(115200);
   Serial.printf("/nBooted");
 
-  Wire.begin(SDA, SCL); // not needed, SSD1306Wire->connect() calls Wire.begin(SDA, SCL)
+//Wire.begin(SDA, SCL); // not needed, SSD1306Wire->connect() calls Wire.begin(SDA, SCL)
   display.init();
   display.flipScreenVertically();
   oled_wifi();
@@ -86,30 +93,50 @@ void loop() {
 }
 
 bool update_rtc(RTC_DS1307 &rtc, uint32_t unixtime){
+  const char fmt[] = "RTC DS1307 %s %d\n";
+
+  if(!rtc.isrunning()){
+    debug(fmt,"not found",-1);
+    return false;
+  }
+
   DateTime now = rtc.now();
   if(now.unixtime()==unixtime){
-    Serial.printf("RTC OK\n");
+    debug(fmt,"on sync",0);
     return true;
   }
 
-  // should take way less than 1s to update
-  //Serial.printf("RTC sync\n");
+  debug(fmt,"now",now.unixtime());
+  debug(fmt,"off by",now.unixtime()-unixtime);
   rtc.adjust(DateTime(unixtime));
   now = rtc.now();
+  debug(fmt,"off by",now.unixtime()-unixtime);
+
+  // should take way less than 1s to update
   return now.unixtime()==unixtime;
 }
 
 bool update_rtc(RTC_PCF8523 &rtc, uint32_t unixtime){
-  DateTime now = rtc.now();
-  if(now.unixtime()==unixtime){
-    return true;
-    Serial.printf("RTC OK\n");
+  const char fmt[] = "RTC PCF8523 %s %d\n";
+
+  if(!rtc.initialized()){
+    debug(fmt,"not found",-1);
+    return false;
   }
 
-  // should take way less than 1s to update
-  //Serial.printf("RTC sync\n");
+  DateTime now = rtc.now();
+  if(now.unixtime()==unixtime){
+    debug(fmt,"on sync",0);
+    return true;
+  }
+
+  debug(fmt,"now",now.unixtime());
+  debug(fmt,"off by",now.unixtime()-unixtime);
   rtc.adjust(DateTime(unixtime));
   now = rtc.now();
+  debug(fmt,"off by",now.unixtime()-unixtime);
+
+  // should take way less than 1s to update
   return now.unixtime()==unixtime;
 }
 
