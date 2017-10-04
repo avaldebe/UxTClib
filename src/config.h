@@ -13,3 +13,6 @@
 #ifndef TIME_ZONE
 #define TIME_ZONE TIME_UTC
 #endif
+#ifndef TIME_DST       // daylightOffset
+#define TIME_DST     0 // should be dealth on the target application
+#endif                 // here we just set the RTC

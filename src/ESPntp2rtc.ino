@@ -8,13 +8,6 @@ Based on example code from
 */
 
 #include <Wire.h>
-#ifndef SCL
- #define SCL D1
-#endif
-#ifndef SDA
- #define SDA D2
-#endif
-
 #include <RTClib.h>
 RTC_DS1307  ds1307;
 RTC_PCF8523 pcf8523;
@@ -28,11 +21,8 @@ SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire libr
 #elif defined(ESP8266)
  #include <ESP8266WiFi.h>
 #endif
-#include <EasyNTPClient.h>
-#include <WiFiUdp.h>
+#include <time.h>
 #include "config.h"
-WiFiUDP udp;
-EasyNTPClient ntp(udp, NTP_POOL, TIME_ZONE); // see config.h
 
 #define DEBUG
 #ifdef DEBUG
@@ -64,19 +54,22 @@ void setup() {
       default:
         Serial.printf(".");
     }
-    delay(500);
+    delay(1000);
   }
   Serial.printf("WiFi connected\n");
+
+  Serial.printf("Connecting to %s\n", NTP_POOL);
+  configTime(TIME_ZONE, TIME_DST, NTP_POOL); // see config.h
+  while (time(NULL)==0){
+    Serial.print(".");
+    delay(1000);
+  }
+  Serial.printf("NTP time %d\n",time(NULL));
 }
 
 void loop() {
-  // query NTP server
-  uint32_t unixtime = (uint32_t) ntp.getUnixTime();
-  if(unixtime==0){  // ntp request failed
-    Serial.printf("NTP fail\n");
-    delay(1500);    // wait 15 secs
-    return;         // before retry
-  }
+  // get time for internal clock, which is NTP synced
+  uint32_t unixtime = (uint32_t) time(NULL);
 
   if (update_rtc(ds1307, unixtime)){
     // sucesful update: DS1307/DS3231

@@ -13,7 +13,7 @@ Update/setup an RTC module from a [NTP][] service using with ESP8266 module.
     - enclosure
 - Software
   - arduino framework
-  - [EasyNTPClient library][NTPlib]
+  - core/HAL ESP8266/ESP32 time library
   - [RTClib library][RTClib]
   - manage wifi keys (optional)
     - [JSON library][ArduinoJson] + SPIFFS
@@ -32,7 +32,6 @@ pio lib install EasyNTPClient RTClib
 [base2]: https://wiki.wemos.cc/products:d1_mini_shields:dual_base
 [base3]: https://wiki.wemos.cc/products:d1_mini_shields:tripler_base
 
-[NTPlib]: https://github.com/aharshac/EasyNTPClient
 [RTClib]: https://github.com/adafruit/RTClib
 [OLEDlib]: https://github.com/squix78/esp8266-oled-ssd1306
 [WiFiManager]: https://github.com/tzapu/WiFiManager.git
