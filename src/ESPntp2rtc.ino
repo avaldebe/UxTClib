@@ -8,8 +8,6 @@ Based on example code from
 */
 
 #include <Wire.h>
-#include <RTClib.h>
-
 #include <SSD1306.h>            // alias for `#include "SSD1306Wire.h"`
 #include "images.h"             // WiFi logo
 SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire library
@@ -20,6 +18,8 @@ RTC ds3231(rtc_t::DS3231);
 RTC pcf8523(rtc_t::PCF8523);
 RTC pcf8563(rtc_t::PCF8563);
 
+#define SECONDS_FROM_1900_TO_1970 2208988800L
+#define SECONDS_FROM_1970_TO_2000  946684800L
 #ifdef ARDUINO_ARCH_ESP32
  #include <WiFi.h>
 #elif defined(ESP8266)
@@ -98,24 +98,24 @@ bool update_rtc(RTC &rtc, time_t unixtime, const char* name){
 #endif
 
   if(!rtc.isrunning()){
-    debug("not found",-1);
+    debug("not found", -1);
     return false;
   }
 
-  DateTime now = rtc.now();
-  if(now.unixtime()==unixtime){
-    debug("on sync",0);
+  time_t now = rtc.now();
+  if(now==unixtime){
+    debug("on sync", 0);
     return true;
   }
 
-  debug("now", now.unixtime());
-  debug("off by", now.unixtime()-unixtime);
+  debug("now", now);
+  debug("off by", now-unixtime);
   rtc.adjust(unixtime);
   now = rtc.now();
-  debug("off by", now.unixtime()-unixtime);
+  debug("off by", now-unixtime);
 
   // should take way less than 1s to update
-  return now.unixtime()==unixtime;
+  return now==unixtime;
 }
 
 void oled_wifi(){
@@ -134,9 +134,9 @@ void oled_wifi(){
   display.display();
 }
 
-void oled_time(const char* title, DateTime now, const char* msg) {
+void oled_time(const char* title, time_t now, const char* msg) {
   // serial message
-  Serial.printf("%s %d %s\n",title, now.unixtime(), msg);
+  Serial.printf("%s %d %s\n",title, now, msg);
 
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_CENTER);
@@ -147,9 +147,10 @@ void oled_time(const char* title, DateTime now, const char* msg) {
   display.setFont(ArialMT_Plain_10);
   const uint8_t chlen = 24;
   static char buffer[chlen];
-  sprintf(buffer, "%04d-%02d-%02d", now.year(), now.month(), now.day());
+  struct tm *timeinfo = localtime(&now);
+  strftime(buffer, chlen, "%F", timeinfo);
   display.drawString(64, 42, buffer);
-  sprintf(buffer, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
+  strftime(buffer, chlen, "%T", timeinfo);
   display.drawString(64, 54, buffer);
 
   // write the buffer to the display

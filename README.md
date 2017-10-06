@@ -13,17 +13,11 @@ Update/setup an RTC module from a [NTP][] service using with ESP8266 module.
     - enclosure
 - Software
   - arduino framework
-  - core/HAL ESP8266/ESP32 time library (see #4)
-  - [RTClib library][RTClib]
+  - core/HAL ESP8266/ESP32 and C/C++ time libraries (see #4)
   - strip down RTC library (see #2)
   - manage wifi keys (optional)
     - [JSON library][ArduinoJson] + SPIFFS
     - [WiFiManager library][WiFiManager]
-
-## Get libs in PlatformIO
-```bash
-pio lib install RTClib
-```
 
 ## Compile in PlatformIO CLI
 ```bash
@@ -46,7 +40,6 @@ pio run -e mhetesp32minikit -t upload
 [base2]: https://wiki.wemos.cc/products:d1_mini_shields:dual_base
 [base3]: https://wiki.wemos.cc/products:d1_mini_shields:tripler_base
 
-[RTClib]: https://github.com/adafruit/RTClib
 [OLEDlib]: https://github.com/squix78/esp8266-oled-ssd1306
 [WiFiManager]: https://github.com/tzapu/WiFiManager.git
 [ArduinoJson]: https://github.com/bblanchon/ArduinoJson.git
