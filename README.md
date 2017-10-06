@@ -15,6 +15,7 @@ Update/setup an RTC module from a [NTP][] service using with ESP8266 module.
   - arduino framework
   - core/HAL ESP8266/ESP32 time library (see #4)
   - [RTClib library][RTClib]
+  - strip down RTC library (see #2)
   - manage wifi keys (optional)
     - [JSON library][ArduinoJson] + SPIFFS
     - [WiFiManager library][WiFiManager]
