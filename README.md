@@ -13,7 +13,7 @@ Update/setup an RTC module from a [NTP][] service using with ESP8266 module.
     - enclosure
 - Software
   - arduino framework
-  - core/HAL ESP8266/ESP32 and time C/C++ libraries (see #4)
+  - core/HAL ESP8266/ESP32 and C/C++ time libraries (see #4)
   - strip down RTC library (see #2)
   - manage wifi keys (optional)
     - [JSON library][ArduinoJson] + SPIFFS
