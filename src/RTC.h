@@ -36,6 +36,4 @@ class RTC {
     }
 };
 
-
-
 #endif // _RTC_H_
