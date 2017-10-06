@@ -53,13 +53,16 @@ boolean RTC::isrunning() {
   Wire.requestFrom(address, (uint8_t)1);
   uint8_t bcd = Wire.read();
 #ifdef DEBUG
-  Serial.printf("RTC year %4d, bcd %3d, found %s\n",
+  Serial.printf("  RTC year %4d, bcd %3d, found %s\n",
     bcd2bin(bcd)+2000, bcd, (bcd != 0xFF)?"T":"F");
 #endif
   return (bcd != 0xFF);
 }
 
 void RTC::adjust(const DateTime timeinfo) {
+#ifdef DEBUG
+  printftime(timeinfo, " ","write RTC");
+#endif
   Wire.beginTransmission(address);
   // wipe control/status registers
   Wire.write((uint8_t)0);
@@ -101,7 +104,8 @@ DateTime RTC::now() {
   Wire.endTransmission();
 
   Wire.requestFrom(address, (uint8_t)7);
-  uint8_t sec, min, hour, mday, mon, year;
+  uint8_t sec, min, hour, mday, mon;
+  uint16_t year;
   switch (rtc_id) {
     case rtc_t::DS1307:
     case rtc_t::DS3231:
@@ -124,5 +128,11 @@ DateTime RTC::now() {
       year= bcd2bin(Wire.read()) + y2k;
       break;
   }
+#ifdef DEBUG
+  DateTime timeinfo(year, mon, mday, hour, min, sec);
+  printftime(timeinfo, " ","read RTC");
+  return timeinfo;
+#else
   return DateTime(year, mon, mday, hour, min, sec);
+#endif
 }
