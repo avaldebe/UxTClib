@@ -61,7 +61,7 @@ boolean RTC::isrunning() {
 
 void RTC::adjust(const struct tm *timeinfo) {
 #ifdef DEBUG
-  printftime(timeinfo, " ","write RTC");
+  printftime(timeinfo, " ", "write RTC");
 #endif
   Wire.beginTransmission(address);
   // wipe control/status registers
@@ -109,7 +109,7 @@ void RTC::adjust(const time_t &now) {
 struct tm *RTC::timeinfo() {
   time_t now = time(NULL);
 #ifdef DEBUG
-  printftime(now, " ","SYS");
+  printftime(now, " ", "SYS");
 #endif
   struct tm *timeinfo = localtime(&now);
   if(mktime(timeinfo)!=now){
@@ -147,7 +147,7 @@ struct tm *RTC::timeinfo() {
       break;
   }
 #ifdef DEBUG
-  printftime(timeinfo, " ","read RTC");
+  printftime(timeinfo, " ", "read RTC");
 #endif
   return timeinfo;
 }
