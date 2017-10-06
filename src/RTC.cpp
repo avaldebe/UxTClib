@@ -61,7 +61,12 @@ boolean RTC::isrunning() {
 
 void RTC::adjust(const struct tm *timeinfo) {
   Wire.beginTransmission(address);
-  Wire.write(sec_reg);
+  // wipe control/status registers
+  Wire.write((uint8_t)0);
+  for(uint8_t reg=0x00; reg<sec_reg; reg++){
+    Wire.write((uint8_t) 0x0);
+  }
+  // write time/date registers
   switch (rtc_id) {
     case rtc_t::DS1307:
     case rtc_t::DS3231:
