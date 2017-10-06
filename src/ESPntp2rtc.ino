@@ -30,7 +30,7 @@ RTC pcf8563(rtc_t::PCF8563);
 
 void setup() {
   Serial.begin(115200);
-  Serial.printf("/nBooted");
+  Serial.printf("\nBooted\n");
 
 //Wire.begin(SDA, SCL); // not needed, SSD1306Wire->connect() calls Wire.begin(SDA, SCL)
   display.init();
@@ -78,9 +78,9 @@ void loop() {
   } else if(update_rtc(pcf8523, unixtime, "PCF8523")){
     // sucesful update: PCF8523
     oled_time("RTC", pcf8523.now(), "PCF8523");
-  } else if(update_rtc(pcf8523, unixtime, "PCF8523")){
+  } else if(update_rtc(pcf8563, unixtime, "PCF8563")){
     // sucesful update: PCF8563
-    oled_time("RTC", pcf8523.now(), "PCF8563");
+    oled_time("RTC", pcf8563.now(), "PCF8563");
   } else {
     // no RTC found/updated, report SYSTEM time
     oled_time("SYS", unixtime, "");
