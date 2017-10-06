@@ -8,14 +8,18 @@ Based on example code from
 */
 
 #include <Wire.h>
-#include <RTClib.h>
-RTC_DS1307  ds1307;
-RTC_PCF8523 pcf8523;
-
 #include <SSD1306.h>            // alias for `#include "SSD1306Wire.h"`
 #include "images.h"             // WiFi logo
 SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire library
 
+#include <RTC.h>
+RTC ds1307(rtc_t::DS1307);
+RTC ds3231(rtc_t::DS3231);
+RTC pcf8523(rtc_t::PCF8523);
+RTC pcf8563(rtc_t::PCF8563);
+
+#define SECONDS_FROM_1900_TO_1970 2208988800L
+#define SECONDS_FROM_1970_TO_2000  946684800L
 #ifdef ARDUINO_ARCH_ESP32
  #include <WiFi.h>
 #elif defined(ESP8266)
@@ -23,13 +27,6 @@ SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire libr
 #endif
 #include <time.h>
 #include "config.h"
-
-#define DEBUG
-#ifdef DEBUG
- #define debug(f,s,d) Serial.printf(f,s,d)
-#else
- #define debug(f,s,d) //skip this line
-#endif
 
 void setup() {
   Serial.begin(115200);
@@ -56,83 +53,67 @@ void setup() {
     }
     delay(1000);
   }
-  Serial.printf("WiFi connected\n");
+  Serial.printf("\nWiFi connected\n");
 
-  Serial.printf("Connecting to %s\n", NTP_POOL);
+  Serial.printf("NTP sync to %s\n", NTP_POOL);
   configTime(TIME_ZONE, TIME_DST, NTP_POOL); // see config.h
-  while (time(NULL)==0){
+  while (time(NULL)<SECONDS_FROM_1970_TO_2000){
     Serial.print(".");
     delay(1000);
   }
-  Serial.printf("NTP time %d\n",time(NULL));
+  Serial.printf("\nNTP synced\n");
+  oled_time("NTP", time(NULL), NTP_POOL);
 }
 
 void loop() {
   // get time for internal clock, which is NTP synced
-  uint32_t unixtime = (uint32_t) time(NULL);
+  time_t unixtime = time(NULL);
 
-  if (update_rtc(ds1307, unixtime)){
+  if (update_rtc(ds1307, unixtime, "DS1307")){
     // sucesful update: DS1307/DS3231
-    oled_time("RTC", ds1307.now(), "DS1307/DS3231");
-  } else if(update_rtc(pcf8523, unixtime)){
-    // sucesful update: PCF8523/PCF8563(?)
-    oled_time("RTC", pcf8523.now(), "PCF8523/PCF8563");
+    oled_time("RTC", ds1307.now(), "DS1307");
+  } else if(update_rtc(pcf8523, unixtime, "PCF8523")){
+    // sucesful update: PCF8523
+    oled_time("RTC", pcf8523.now(), "PCF8523");
+  } else if(update_rtc(pcf8523, unixtime, "PCF8523")){
+    // sucesful update: PCF8563
+    oled_time("RTC", pcf8523.now(), "PCF8563");
   } else {
     // no RTC found/updated, report NTC time
-    oled_time("NTP", DateTime(unixtime), NTP_POOL);
+    oled_time("SYS", unixtime, NTP_POOL);
   }
 
   delay(6000); // 60 secs
 }
 
-bool update_rtc(RTC_DS1307 &rtc, uint32_t unixtime){
-  const char fmt[] = "RTC DS1307 %s %d\n";
+bool update_rtc(RTC &rtc, time_t unixtime, const char* name){
+  const char fmt[] = "RTC %s %s %d\n";
+#ifdef DEBUG
+ #define debug(s,d) Serial.printf(fmt,name,s,d)
+#else
+ #define debug(s,d) //skip this line
+#endif
 
   if(!rtc.isrunning()){
-    debug(fmt,"not found",-1);
+    debug("not found", -1);
     return false;
   }
 
-  DateTime now = rtc.now();
-  if(now.unixtime()==unixtime){
-    debug(fmt,"on sync",0);
+  time_t now = rtc.now();
+  if(now==unixtime){
+    debug("on sync", 0);
     return true;
   }
 
-  debug(fmt,"now",now.unixtime());
-  debug(fmt,"off by",now.unixtime()-unixtime);
-  rtc.adjust(DateTime(unixtime));
+  debug("now", now);
+  debug("off by", now-unixtime);
+  rtc.adjust(unixtime);
   now = rtc.now();
-  debug(fmt,"off by",now.unixtime()-unixtime);
+  debug("off by", now-unixtime);
 
   // should take way less than 1s to update
-  return now.unixtime()==unixtime;
+  return now==unixtime;
 }
-
-bool update_rtc(RTC_PCF8523 &rtc, uint32_t unixtime){
-  const char fmt[] = "RTC PCF8523 %s %d\n";
-
-  if(!rtc.initialized()){
-    debug(fmt,"not found",-1);
-    return false;
-  }
-
-  DateTime now = rtc.now();
-  if(now.unixtime()==unixtime){
-    debug(fmt,"on sync",0);
-    return true;
-  }
-
-  debug(fmt,"now",now.unixtime());
-  debug(fmt,"off by",now.unixtime()-unixtime);
-  rtc.adjust(DateTime(unixtime));
-  now = rtc.now();
-  debug(fmt,"off by",now.unixtime()-unixtime);
-
-  // should take way less than 1s to update
-  return now.unixtime()==unixtime;
-}
-
 
 void oled_wifi(){
   display.clear();
@@ -150,11 +131,10 @@ void oled_wifi(){
   display.display();
 }
 
-void oled_time(const char* title, DateTime now, const char* msg) {
+void oled_time(const char* title, time_t now, const char* msg) {
   // serial message
-  Serial.printf("%s %d %s\n",title, now.unixtime(), msg);
+  Serial.printf("%s %d %s\n",title, now, msg);
 
-  static char buffer[24];
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_CENTER);
   display.setFont(ArialMT_Plain_24);
@@ -162,9 +142,12 @@ void oled_time(const char* title, DateTime now, const char* msg) {
 
   // date and time
   display.setFont(ArialMT_Plain_10);
-  sprintf(buffer, "%04d-%02d-%02d", now.year(), now.month(), now.day());
+  const uint8_t chlen = 24;
+  static char buffer[chlen];
+  struct tm *timeinfo = localtime(&now);
+  strftime(buffer, chlen, "%F", timeinfo);
   display.drawString(64, 42, buffer);
-  sprintf(buffer, "%02d:%02d:%02d", now.hour(), now.minute(), now.second());
+  strftime(buffer, chlen, "%T", timeinfo);
   display.drawString(64, 54, buffer);
 
   // write the buffer to the display
