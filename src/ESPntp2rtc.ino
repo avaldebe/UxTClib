@@ -70,8 +70,11 @@ void loop() {
   time_t unixtime = time(NULL);
 
   if (update_rtc(ds1307, unixtime, "DS1307")){
-    // sucesful update: DS1307/DS3231
+    // sucesful update: DS1307
     oled_time("RTC", ds1307.now(), "DS1307");
+  } else if (update_rtc(ds3231, unixtime, "DS3231")){
+      // sucesful update: DS3231
+      oled_time("RTC", ds3231.now(), "DS3231");
   } else if(update_rtc(pcf8523, unixtime, "PCF8523")){
     // sucesful update: PCF8523
     oled_time("RTC", pcf8523.now(), "PCF8523");
@@ -79,8 +82,8 @@ void loop() {
     // sucesful update: PCF8563
     oled_time("RTC", pcf8523.now(), "PCF8563");
   } else {
-    // no RTC found/updated, report NTC time
-    oled_time("SYS", unixtime, NTP_POOL);
+    // no RTC found/updated, report SYSTEM time
+    oled_time("SYS", unixtime, "");
   }
 
   delay(6000); // 60 secs

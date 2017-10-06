@@ -52,20 +52,14 @@ boolean RTC::isrunning() {
 
   Wire.requestFrom(address, (uint8_t)1);
   uint8_t bcd = Wire.read();
-//Serial.printf("RTC year %4d, bcd %3d, found %s\n",
-//  bcd2bin(bcd)+2000, bcd, (bcd != 0xFF)?"T":"F");
+#ifdef DEBUG
+  Serial.printf("RTC year %4d, bcd %3d, found %s\n",
+    bcd2bin(bcd)+2000, bcd, (bcd != 0xFF)?"T":"F");
+#endif
   return (bcd != 0xFF);
 }
 
-void RTC::adjust(const time_t &now) {
-  struct tm *timeinfo = localtime(&now);
-  if(mktime(timeinfo)!=now){
-    Serial.printf("ERROR: localtime/mktime missmatch");
-    printftime(timeinfo, "  localtime");
-    printftime(mktime(timeinfo), "  mktime");
-    return;
-  }
-
+void RTC::adjust(const struct tm *timeinfo) {
   Wire.beginTransmission(address);
   Wire.write(sec_reg);
   switch (rtc_id) {
@@ -92,8 +86,18 @@ void RTC::adjust(const time_t &now) {
   }
   Wire.endTransmission();
 }
+void RTC::adjust(const time_t &now) {
+  struct tm *timeinfo = localtime(&now);
+  if(mktime(timeinfo)!=now){
+    Serial.printf("ERROR: localtime/mktime missmatch");
+    printftime(timeinfo, "  localtime");
+    printftime(mktime(timeinfo), "  mktime");
+    return;
+  }
+  adjust(timeinfo);
+}
 
-time_t RTC::now() {
+struct tm *RTC::timeinfo() {
   time_t now = time(NULL);
   struct tm *timeinfo = localtime(&now);
   if(mktime(timeinfo)!=now){
@@ -134,5 +138,9 @@ time_t RTC::now() {
   printftime(now, "  SYS");
   printftime(timeinfo, "  RTC");
 #endif
+  return timeinfo;
+}
+time_t RTC::now() {
+  struct tm *timeinfo = RTC::timeinfo();
   return mktime(timeinfo);
 }
