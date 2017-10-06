@@ -12,8 +12,7 @@ class RTC {
     boolean isrunning();
     void adjust(const DateTime timeinfo);
     void adjust(const uint32_t now);
-    uint32_t now();
-    DateTime timeinfo();
+    DateTime now();
 
   protected:
     rtc_t rtc_id;

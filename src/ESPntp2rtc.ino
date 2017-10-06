@@ -108,11 +108,11 @@ bool update_rtc(RTC &rtc, time_t unixtime, const char* name){
     return true;
   }
 
-  debug("now",now.unixtime());
-  debug("off by",now.unixtime()-unixtime);
+  debug("now", now.unixtime());
+  debug("off by", now.unixtime()-unixtime);
   rtc.adjust(unixtime);
   now = rtc.now();
-  debug("off by",now.unixtime()-unixtime);
+  debug("off by", now.unixtime()-unixtime);
 
   // should take way less than 1s to update
   return now.unixtime()==unixtime;

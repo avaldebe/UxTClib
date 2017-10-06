@@ -95,7 +95,7 @@ void RTC::adjust(const uint32_t now) {
   adjust(DateTime(now));
 }
 
-DateTime RTC::timeinfo() {
+DateTime RTC::now() {
   Wire.beginTransmission(address);
   Wire.write(sec_reg);
   Wire.endTransmission();
@@ -125,7 +125,4 @@ DateTime RTC::timeinfo() {
       break;
   }
   return DateTime(year, mon, mday, hour, min, sec);
-}
-uint32_t RTC::now() {
-  return timeinfo().unixtime();
 }
