@@ -19,10 +19,25 @@ Update/setup an RTC module from a [NTP][] service using with ESP8266 module.
     - [JSON library][ArduinoJson] + SPIFFS
     - [WiFiManager library][WiFiManager]
 
-## Get libs in PlatformIO
+## Get libs in PlatformIO CLI
 ```bash
-pio lib install EasyNTPClient RTClib
+pio lib install RTClib
 ```
+
+## Compile in PlatformIO CLI
+```bash
+# set wifi credentials
+export WIFI_SSID=myWIFIssid WIFI_PASS=myWIFIpass
+
+# compile & upload for d1_mini (esp8266)
+pio run -e d1_mini
+pio run -e d1_mini  -t upload
+
+# compile & upload for d1_mini (esp32)
+pio run -e mhetesp32minikit
+pio run -e mhetesp32minikit  -t upload
+```
+
 
 
 [d1_mini]: https://wiki.wemos.cc/products:d1:d1_mini
