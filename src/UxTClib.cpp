@@ -2,7 +2,7 @@
 #include <Wire.h>
 #include <time.h>
 #include <assert.h>
-#include "RTC.h"
+#include "UxTClib.h"
 
 #define DS1307_ADDRESS    0x68
 #define DS1307_SEC_REG    0x00

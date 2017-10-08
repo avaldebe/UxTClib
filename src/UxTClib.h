@@ -1,5 +1,5 @@
-#ifndef _RTC_H_
-#define _RTC_H_
+#ifndef _UXTC_H_
+#define _UXTC_H_
 
 #include <Arduino.h>
 #include <time.h>
@@ -36,4 +36,4 @@ class RTC {
     }
 };
 
-#endif // _RTC_H_
+#endif // _UXTC_H_

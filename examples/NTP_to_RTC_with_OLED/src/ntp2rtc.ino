@@ -15,7 +15,7 @@ NOTE:
 #include "images.h"             // WiFi logo
 SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire library
 
-#include <RTC.h>
+#include <UxTClib.h>
 RTC ds1307(rtc_t::DS1307);
 RTC ds3231(rtc_t::DS3231);
 RTC pcf8523(rtc_t::PCF8523);
