@@ -32,7 +32,8 @@ RTC pcf8563(rtc_t::PCF8563);
 
 void setup() {
   Serial.begin(115200);
-  Serial.printf("\nBooted\n");
+  Serial.printf("\nProgram: %s\n", __FILE__);
+  Serial.printf("Build: %s %s\n", __DATE__, __TIME__);
 
 //Wire.begin(SDA, SCL); // not needed, SSD1306Wire->connect() calls Wire.begin(SDA, SCL)
   display.init();

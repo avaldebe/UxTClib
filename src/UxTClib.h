@@ -2,7 +2,9 @@
 #define _UXTC_H_
 
 #include <Arduino.h>
+#include <Wire.h>
 #include <time.h>
+#include <assert.h>
 
 enum class rtc_t {DS1307, DS3231, PCF8523, PCF8563};
 
