@@ -16,10 +16,11 @@ NOTE:
 SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire library
 
 #include <UxTClib.h>
-RTC ds1307(rtc_t::DS1307);
-RTC ds3231(rtc_t::DS3231);
-RTC pcf8523(rtc_t::PCF8523);
-RTC pcf8563(rtc_t::PCF8563);
+// all currently supported RTCs
+const uint8_t rtc_tot = 4;
+const char *rtcname[rtc_tot] = {"DS1307", "DS3231", "PCF8523", "PCF8563"};
+RTC rtc[rtc_tot]={ RTC(rtc_t::DS1307), RTC(rtc_t::DS3231),
+                   RTC(rtc_t::PCF8523), RTC(rtc_t::PCF8563)};
 
 #define SECONDS_FROM_1900_TO_1970 2208988800L
 #define SECONDS_FROM_1970_TO_2000  946684800L
@@ -75,24 +76,18 @@ void loop() {
   // get time for internal clock, which is NTP synced
   time_t unixtime = time(NULL);
 
-  if (update_rtc(ds1307, unixtime, "DS1307")){
-    // sucesful update: DS1307
-    oled_time("RTC", ds1307.now(), "DS1307");
-  } else if (update_rtc(ds3231, unixtime, "DS3231")){
-      // sucesful update: DS3231
-      oled_time("RTC", ds3231.now(), "DS3231");
-  } else if(update_rtc(pcf8523, unixtime, "PCF8523")){
-    // sucesful update: PCF8523
-    oled_time("RTC", pcf8523.now(), "PCF8523");
-  } else if(update_rtc(pcf8563, unixtime, "PCF8563")){
-    // sucesful update: PCF8563
-    oled_time("RTC", pcf8563.now(), "PCF8563");
+  // try updating the RTCs one at a time
+  static uint8_t n=0;
+  n %= rtc_tot; // there is only rtc_tot RTCs to try
+  if (update_rtc(rtc[n], unixtime, rtcname[n])){
+    oled_time("RTC", rtc[n].now(), rtcname[n]);
   } else {
-    // no RTC found/updated, report SYSTEM time
+  // no RTC found/updated, report SYSTEM time
     oled_time("SYS", unixtime, "");
+    n++;
   }
 
-  delay(6000); // 60 secs
+  delay(6000); // wait 60s until next try
 }
 
 bool update_rtc(RTC &rtc, time_t unixtime, const char* name){
