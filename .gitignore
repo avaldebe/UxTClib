@@ -1,4 +1,5 @@
 .pioenvs
 .piolibdeps
+.travis.yml
 .clang_complete
 .gcc-flags.json
