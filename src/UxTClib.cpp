@@ -4,8 +4,35 @@
 #include <assert.h>
 #include "UxTClib.h"
 
+const uint32_t
+  SECONDS_FROM_1900_TO_1970 = 2208988800,
+  SECONDS_FROM_1970_TO_2000 =  946684800;
 
+STC::STC(uint8_t time_zone, uint8_t time_dst,
+   const char *ntp_server0,
+   const char *ntp_server1,
+   const char *ntp_server2) {
+   zone = time_zone;
+   dst = time_dst;
+   ntp0 = ntp_server0;
+   ntp1 = ntp_server1;
+   ntp2 = ntp_server2;
+ }
 
+void STC::init(boolean verbose){
+  if(verbose){
+    Serial.printf("NTP sync to %s %s %s\n", ntp0, ntp1, ntp2);
+    configTime(zone, dst, ntp0, ntp1, ntp2);
+    while (time(NULL)<SECONDS_FROM_1970_TO_2000){
+      Serial.printf(".");
+      delay(1000);
+    }
+    Serial.printf("\nNTP synced\n");
+  } else {
+    configTime(zone, dst, ntp0, ntp1, ntp2);
+    while (time(NULL)<SECONDS_FROM_1970_TO_2000){ delay(1000); }
+  }
+}
 
 // tm_year = years since 1900
 const uint16_t epoch = 1900, y2k = 2000 - epoch;

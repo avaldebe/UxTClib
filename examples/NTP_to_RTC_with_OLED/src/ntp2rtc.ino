@@ -16,6 +16,12 @@ NOTE:
 SSD1306  display(0x3c, SDA, SCL); // Initialize the OLED display using Wire library
 
 #include <UxTClib.h>
+// System cTime Clock
+//   set for UTC time, no DST (daylight saving time)
+//   local time and DST should be dealth on the target application
+//   here we just set the RTC
+STC systime(0, 0, NTP_POOL);
+
 // all currently supported RTCs
 const uint8_t rtc_tot = 4;
 const char *rtcname[rtc_tot] = {"DS1307", "DS3231", "PCF8523", "PCF8563"};
@@ -69,12 +75,14 @@ void setup() {
     delay(1000);
   }
   Serial.printf("\nNTP synced\n");
+  systime.init(true); // verbose mode
   oled_time("NTP", time(NULL), NTP_POOL);
+  delay(1500); // wait 15s until 1st update
 }
 
 void loop() {
   // get time for internal clock, which is NTP synced
-  time_t unixtime = time(NULL);
+  time_t unixtime = systime.now();
 
   // try updating the RTCs one at a time
   static uint8_t n=0;
@@ -91,9 +99,9 @@ void loop() {
 }
 
 bool update_rtc(RTC &rtc, time_t unixtime, const char* name){
-  const char fmt[] = "RTC %s %s %d\n";
+
 #ifdef DEBUG
- #define debug(s,d) Serial.printf(fmt,name,s,d)
+ #define debug(s,d) Serial.printf("RTC %s %s %d\n",name,s,d)
 #else
  #define debug(s,d) //skip this line
 #endif
@@ -146,13 +154,8 @@ void oled_time(const char* title, time_t now, const char* msg) {
 
   // date and time
   display.setFont(ArialMT_Plain_10);
-  const uint8_t chlen = 24;
-  static char buffer[chlen];
-  struct tm *timeinfo = localtime(&now);
-  strftime(buffer, chlen, "%F", timeinfo);
-  display.drawString(64, 42, buffer);
-  strftime(buffer, chlen, "%T", timeinfo);
-  display.drawString(64, 54, buffer);
+  display.drawString(64, 42, systime.date(now,"%F"));
+  display.drawString(64, 54, systime.date(now,"%T"));
 
   // write the buffer to the display
   display.display();
