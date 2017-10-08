@@ -37,6 +37,8 @@ RTC rtc[rtc_tot]={ RTC(rtc_t::DS1307), RTC(rtc_t::DS3231),
 #endif
 #include <time.h>
 
+void wifi_init(boolean verbose=false);
+
 void setup() {
   Serial.begin(115200);
   Serial.printf("\nProgram: %s\n", __FILE__);
@@ -47,34 +49,8 @@ void setup() {
   display.flipScreenVertically();
   oled_wifi();
 
-  Serial.printf("Connecting to %s\n", WIFI_SSID);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASS); // see config.h
-  while (WiFi.status() != WL_CONNECTED) {
-    switch (WiFi.status()) {
-      case WL_NO_SSID_AVAIL:
-        Serial.printf("SSID not found\n");
-        break;
-      case WL_CONNECT_FAILED:
-        Serial.printf("Failed to connect\n");
-        break;
-      default:
-        Serial.printf(".");
-    }
-    delay(1000);
-  }
-  Serial.printf("\nWiFi connected\n");
-
-  Serial.printf("NTP sync to %s\n", NTP_POOL);
-  // UTC time, no DST (daylight saving time)
-  // local time and DST should be dealth on the target application
-  // here we just set the RTC
-  configTime(0, 0, NTP_POOL);
-  while (time(NULL)<SECONDS_FROM_1970_TO_2000){
-    Serial.print(".");
-    delay(1000);
-  }
-  Serial.printf("\nNTP synced\n");
+  // start wify and systime
+  wifi_init(true);    // verbose mode
   systime.init(true); // verbose mode
   oled_time("NTP", time(NULL), NTP_POOL);
   delay(1500); // wait 15s until 1st update
@@ -96,6 +72,33 @@ void loop() {
   }
 
   delay(6000); // wait 60s until next try
+}
+
+void wifi_init(boolean verbose) {
+  if(verbose){
+    Serial.printf("Connecting to %s\n", WIFI_SSID);
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    while (WiFi.status() != WL_CONNECTED) {
+      switch (WiFi.status()) {
+        case WL_NO_SSID_AVAIL:
+          Serial.printf("SSID not found\n");
+          break;
+        case WL_CONNECT_FAILED:
+          Serial.printf("Failed to connect\n");
+          break;
+        default:
+          Serial.printf(".");
+      }
+      delay(1000);
+    }
+    Serial.printf("\nWiFi connected\n");
+
+  } else {
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(WIFI_SSID, WIFI_PASS);
+    while (WiFi.status() != WL_CONNECTED) { delay(1000); }
+  }
 }
 
 bool update_rtc(RTC &rtc, time_t unixtime, const char* name){
