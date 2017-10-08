@@ -5,6 +5,9 @@ ESPntp2rtc.ino
 Based on example code from
   https://github.com/SensorsIot/NTPtimeESP
   https://github.com/squix78/esp8266-oled-ssd1306
+
+NOTE:
+  WIFI_SSID, WIFI_PASS and NTP_POOL are defined in platformio.ini
 */
 
 #include <Wire.h>
@@ -26,7 +29,6 @@ RTC pcf8563(rtc_t::PCF8563);
  #include <ESP8266WiFi.h>
 #endif
 #include <time.h>
-#include "config.h"
 
 void setup() {
   Serial.begin(115200);
@@ -56,7 +58,10 @@ void setup() {
   Serial.printf("\nWiFi connected\n");
 
   Serial.printf("NTP sync to %s\n", NTP_POOL);
-  configTime(TIME_ZONE, TIME_DST, NTP_POOL); // see config.h
+  // UTC time, no DST (daylight saving time)
+  // local time and DST should be dealth on the target application
+  // here we just set the RTC
+  configTime(0, 0, NTP_POOL);
   while (time(NULL)<SECONDS_FROM_1970_TO_2000){
     Serial.print(".");
     delay(1000);
