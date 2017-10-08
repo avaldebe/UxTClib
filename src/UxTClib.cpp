@@ -4,17 +4,8 @@
 #include <assert.h>
 #include "UxTClib.h"
 
-#define DS1307_ADDRESS    0x68
-#define DS1307_SEC_REG    0x00
 
-#define DS3231_ADDRESS    0x68
-#define DS3231_SEC_REG    0x00
 
-#define PCF8523_ADDRESS   0x68
-#define PCF8523_SEC_REG   0x03
-
-#define PCF8563_ADDRESS   0x51
-#define PCF8563_SEC_REG   0x02
 
 // tm_year = years since 1900
 const uint16_t epoch = 1900, y2k = 2000 - epoch;
@@ -23,20 +14,17 @@ RTC::RTC(const rtc_t& rtc) {
   rtc_id = rtc;
   switch (rtc_id) {
     case rtc_t::DS1307:
-      address = DS1307_ADDRESS;
-      sec_reg = DS1307_SEC_REG;
-      break;
     case rtc_t::DS3231:
-      address = DS3231_ADDRESS;
-      sec_reg = DS3231_SEC_REG;
+      address = 0x68;
+      sec_reg = 0x00;
       break;
     case rtc_t::PCF8523:
-      address = PCF8523_ADDRESS;
-      sec_reg = PCF8523_SEC_REG;
+      address = 0x68;
+      sec_reg = 0x03;
       break;
     case rtc_t::PCF8563:
-      address = PCF8563_ADDRESS;
-      sec_reg = PCF8563_SEC_REG;
+      address = 0x51;
+      sec_reg = 0x02;
       break;
     default:
       Serial.printf("RTC not implemented\n");
