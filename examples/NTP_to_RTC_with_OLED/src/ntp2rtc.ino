@@ -28,8 +28,8 @@ const char *rtcname[rtc_tot] = {"DS1307", "DS3231", "PCF8523", "PCF8563"};
 RTC rtc[rtc_tot]={ RTC(rtc_t::DS1307), RTC(rtc_t::DS3231),
                    RTC(rtc_t::PCF8523), RTC(rtc_t::PCF8563)};
 
-#define SECONDS_FROM_1900_TO_1970 2208988800L
-#define SECONDS_FROM_1970_TO_2000  946684800L
+#define SECONDS_FROM_1900_TO_1970 2208988800UL
+#define SECONDS_FROM_1970_TO_2000  946684800UL
 #ifdef ARDUINO_ARCH_ESP32
  #include <WiFi.h>
 #elif defined(ESP8266)
@@ -148,7 +148,7 @@ void oled_wifi(){
 
 void oled_time(const char* title, time_t now, const char* msg) {
   // serial message
-  Serial.printf("%s %d %s\n",title, now, msg);
+  Serial.printf("%s %d %s\n",title, (uint32_t)now, msg);
 
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_CENTER);

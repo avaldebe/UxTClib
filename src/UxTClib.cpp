@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "UxTClib.h"
 
-const uint32_t
+const time_t
   SECONDS_FROM_1900_TO_1970 = 2208988800,
   SECONDS_FROM_1970_TO_2000 =  946684800;
 
